@@ -69,11 +69,17 @@ Note css was setup for screen size 1920 x 1080. Not setup for mobile devices at 
 
 ## Screenshots of the site
 
-Home page - not signed in
+Home page when the user isn't signed in:
+![alt text](image.png)
 
+Home page when the user is signed in: 
+![alt text](image-4.png)
 
 User profile
+![alt text](image-3.png)
 
-Login
+Login Page
+![alt text](image-1.png)
 
-Signup
+Signup Page
+![alt text](image-2.png)

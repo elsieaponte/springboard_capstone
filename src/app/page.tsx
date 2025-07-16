@@ -1,103 +1,195 @@
-import Image from "next/image";
+"use client";
+import toast from "react-hot-toast";
+import axios from "axios";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+  const router = useRouter();
+
+  const [allParks, setAllParks] = useState<any[]>([]);
+  const [filteredParks, setFilteredParks] = useState<any[]>([]);
+  const [states, setStates] = useState<any[]>([]);
+  const [selectedState, setSelectedState] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoggedIn, setisLoggedIn] = useState(false);
+  const [userId, setUserId] = useState("");
+  const [visitedParkIds, setVisitedParkIds] = useState<string[]>([]);
+
+  const parksPerPage = 30;
+
+  //pagination - calculations for indexes for slicing 
+  const indexOfLastPark = currentPage * parksPerPage;
+  const indexOfFirstPark = indexOfLastPark - parksPerPage;
+  const currentParks = filteredParks.slice(indexOfFirstPark, indexOfLastPark);
+  const totalPages = Math.ceil(filteredParks.length / parksPerPage);
+
+  //gets park details from the api 
+  const getParkDetails = async () => {
+    try {
+
+      const response = await axios.get("/api/parks");
+      const parks = response.data.data;
+
+      setAllParks(parks);
+      setFilteredParks(parks);
+
+      //get all the unique state codes
+      const uniqueStates = Array.from(
+        new Set(parks.flatMap((park: any) => park.states.split(",").map((s: string) => s.trim())))).sort();
+
+      setStates(uniqueStates);
+
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  }
+
+  useEffect(() => {
+    getParkDetails();
+  }, []);
+
+  //pagination - control functions
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1)
+    }
+  }
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1)
+    }
+  }
+
+  //check if the user is logged in
+  useEffect(() => {
+    const checkLogin = async () => {
+      try {
+        const res = await axios.get("/api/users/me")
+        if (res.data?.data?._id) {
+          setisLoggedIn(true)
+          setUserId(res.data.data._id)
+          const visitedIds = res.data.data.visitedParks?.map((p: any) => p.parkId || [])
+          setVisitedParkIds(visitedIds)
+        }
+      } catch (error: any) {
+        toast.error(error.message);
+      }
+    }
+    checkLogin()
+  }, [])
+
+  //onclick function for marked as visited
+  const markVisited = async (park: any) => {
+    try {
+      const res = await axios.post("/api/users/visited", {
+        parkId: park.parkCode,
+        parkName: park.fullName,
+        imageUrl: park.images?.[0].url,
+      })
+
+      if (res.data.success) {
+        toast.success(`Marked ${park.fullName} as visited!`)
+        setVisitedParkIds(prev => [...prev, park.parkCode])
+      }
+    } catch (error: any) {
+      toast.error("Failed to mark as visited");
+    }
+  }
+
+  return (
+    <div>
+      {/* filter drop down for states */}
+      {states.length > 0 && (
+        <select
+          className="ml-5 bg-[rgba(72,51,11,1)] text-white px-3 py-2 border border-white rounded "
+          value={selectedState}
+          onChange={(e) => {
+            const state = e.target.value;
+            setSelectedState(state);
+            setCurrentPage(1);
+
+            if (state === "") {
+              setFilteredParks(allParks);
+            } else {
+              const filtered = allParks.filter((park) =>
+                park.states.split(",").map((s: string) => s.trim()).includes(state));
+              setFilteredParks(filtered);
+            }
+          }}>
+          {/* filter drop down */}
+          <option value="">Filter by State</option>
+          {states.map((state) => (
+            <option
+              key={state}
+              value={state}>
+              {state}
+            </option>
+          ))}
+        </select>
+
+      )}
+
+      {/* display list of national parks from a particular state */}
+      <div>
+        {currentParks.length > 0 ? (
+          currentParks.map((park, index) => (
+            <div key={park.id || index} className="relative border p-4 my-2 mx-4 rounded shadow flex flex-col md:flex-row gap-4">
+              <div>
+                <img
+                  src={park.images[0].url}
+                  alt={park.images[0].altText || "Park Image"}
+                  onClick={() => router.push(`/park/${park.parkCode}`)}
+                  className="w-100 max-w-md h-auto object-cover rounded mb-2 border border-white cursor-pointer" />
+                <p>Credit: {park.images[0].credit}</p>
+              </div>
+              <div>
+                <h2 className="font-bold mb-4">{park.fullName} {park.designation === "" ? "" : `: ${park.designation}`}</h2>
+                <p className="mb-4">{park.description}</p>
+                <a href={park.url}
+                  className="hover:text-white">Visit Official Website</a>
+              </div>
+              <div className="absolute bottom-4 right-4">
+                {isLoggedIn && (
+                  <button
+                    onClick={() => markVisited(park)}
+                    className="text-xs cursor-pointer border border-white py-2 px-4 rounded bg-[rgba(72,51,11,1)] text-white"
+                  >
+                    {visitedParkIds.includes(park.parkCode) ? "Marked" : "I've been here!"}
+                  </button>
+                )}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
+            <div className="border-4 border-[#B1AB86] rounded-lg p-8 shadow-lg text-center">
+              <p className="text-lg font-semibold mb-2">...Loading National Parks</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* pagination */}
+      <div className="flex justify-center gap-4 my-4">
+        <button
+          onClick={goToPreviousPage}
+          disabled={currentPage === 1}
+          className="border rounded py-2 px-4 bg-[#B1AB86] hover:bg-[#819067] hover:text-white"
+        >Previous
+        </button>
+        <span className="px-2">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={goToNextPage}
+          disabled={currentPage === totalPages}
+          className="border rounded py-2 px-4 bg-[#B1AB86] hover:bg-[#819067] hover:text-white"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          Next
+        </button>
+      </div>
     </div>
   );
 }

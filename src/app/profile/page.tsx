@@ -49,9 +49,9 @@ export default function ProfilePage() {
                 )}
             </div>
             <p className="text-center mb-8 text-xl text-bold">Parks I have visited: </p>
-            {userData?.visitedParks?.length > 0 ? (
+            {(userData?.visitedParks ?? []).length > 0 ? (
                 <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ml-5 mr-5">
-                    {userData.visitedParks.map((park: any, index: number) => (
+                    {(userData?.visitedParks ?? []).map((park: any, index: number) => (
                         <li key={index} className="border rounded-lg p-4 shadow">
                             <h3 className="font-bold mb-2">{park.parkName}</h3>
                             {park.imageUrl && (

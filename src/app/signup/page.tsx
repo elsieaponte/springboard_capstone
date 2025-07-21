@@ -89,7 +89,7 @@ export default function SignupPage() {
                             className="border rounded py-2 px-4 bg-[#B1AB86] hover:bg-[#819067] hover:text-white">
                             {buttonDisabled ? "Signup" : "Signup"}
                         </button>
-                        <Link href="/login" className="border rounded py-2 px-4 bg-[#B1AB86] hover:bg-[#819067] hover:text-white">Login</Link>
+                        <Link href="/login" className="border rounded py-2 px-4 bg-[#B1AB86] hover:bg-[#819067] hover:text-white">Go To Login Page</Link>
                     </div>
                 </div>
             </div>

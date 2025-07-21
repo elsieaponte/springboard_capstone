@@ -26,7 +26,8 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ data: allParks });
 
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 })
+    } catch (error) {
+        const message = error instanceof Error ? error.message : "unknown error";
+        return NextResponse.json({ error: message }, { status: 500 })
     }
 }

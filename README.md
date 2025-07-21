@@ -37,21 +37,37 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## npm packages to install
 npm install axios
+
 npm install bcryptjs
+
 npm install js-cookie
+
 npm install jsonwebtoken
+
 npm install jwt-decode
+
 npm install mongoose
+
 npm install react
+
 npm install react-dom
+
 npm install react-hot-toast
+
+npm install jest
+
 
 ## .env
 This file should include 5 variables:
+
 MONGO_URI = Mongodb server URI. Scroll down to MongoDB for more detailed instructions. 
+
 TOKEN_SECRET = this is a string of your choosing.
+
 DOMAIN = include your domain here. If you are using localhost, enter that here with the port. 
+
 PARKS_API_AUTH = API key to use the national parks APIs. Scroll down to National Parks API for more detailed instructions. 
+
 PARKS_URI = https://developer.nps.gov/api/v1/parks => National Park Service API Developer Resource website.
 
 ## National Parks API
@@ -59,9 +75,13 @@ To obtain an NPS API key sign up by filling out the form in this link: https://w
 
 ## MongoDB
 Follow these links to get started with MongoDB Atlas and Compass. 
+
 Create an account - https://www.mongodb.com/docs/atlas/tutorial/create-atlas-account/
+
 Deploy a free cluster - https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/
+
 Database User Management - https://www.mongodb.com/docs/atlas/tutorial/create-mongodb-user-for-cluster/
+
 Create connection and cluster - https://www.mongodb.com/docs/atlas/create-connect-deployments/
 
 ## Tailwind CSS
@@ -72,14 +92,18 @@ Note css was setup for screen size 1920 x 1080. Not setup for mobile devices at 
 Home page when the user isn't signed in:
 ![alt text](image.png)
 
+
 Home page when the user is signed in: 
 ![alt text](image-4.png)
+
 
 User profile
 ![alt text](image-3.png)
 
+
 Login Page
 ![alt text](image-1.png)
+
 
 Signup Page
 ![alt text](image-2.png)

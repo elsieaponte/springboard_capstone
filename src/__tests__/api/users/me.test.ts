@@ -1,26 +1,32 @@
 import { GET } from '@/app/api/users/me/route';
 import { NextRequest } from 'next/server';
-import jwt from 'jsonwebtoken';
 import User from '@/models/User';
+import { getDataFromToken } from '@/helpers/getDataFromToken';
+import { Types } from 'mongoose';
 
 jest.mock('@/models/User');
-jest.mock('jsonwebtoken');
+jest.mock('@/helpers/getDataFromToken', () => ({
+    getDataFromToken: jest.fn(),
+}));
+
+const objectId = new Types.ObjectId();
 
 describe('GET /api/users/me', () => {
     it('returns user data when valid token is present', async () => {
-        const fakeUser = {
-            _id: '123',
-            username: 'test',
-            email: 'test@example.com',
-            toObject: () => ({
-                _id: '123',
-                username: 'test',
-                email: 'test@example.com',
-            }),
-        };
 
-        (jwt.verify as jest.Mock).mockReturnValue({ id: '123' });
-        (User.findOne as jest.Mock).mockResolvedValue(fakeUser);
+        (getDataFromToken as jest.Mock).mockResolvedValue(objectId);
+        (User.findOne as jest.Mock).mockReturnValue({
+            select: jest.fn().mockReturnValue({
+                _id: objectId,
+                username: 'elsie',
+                email: 'elsie@email.com',
+                toObject: () => ({
+                    _id: objectId,
+                    username: 'elsie',
+                    email: 'elsie@email.com',
+                }),
+            }),
+        });
 
         const req = new Request('http://localhost/api/users/me', {
             headers: {
@@ -32,6 +38,6 @@ describe('GET /api/users/me', () => {
         const body = await res.json();
 
         expect(res.status).toBe(200);
-        expect(body.data.email).toBe('test@example.com');
+        expect(body.data.email).toBe('elsie@email.com');
     });
 });

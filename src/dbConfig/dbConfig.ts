@@ -6,10 +6,9 @@ export async function connect() {
         const connection = mongoose.connection;
 
         connection.on('connected', () => {
-            console.log('connected successfully');
         });
     }
     catch (err) {
-        console.log(err);
+        console.log("Failed to connect to the database", err);
     }
 }
